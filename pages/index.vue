@@ -22,6 +22,11 @@
         >
           GitHub
         </a>
+        <ul>
+          <li v-for="pref in prefs" :key="pref.prefCode">
+            {{ pref.prefName }}
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -34,14 +39,9 @@ export default {
 
     const data = await $axios.get(PrefsURL, {
       headers: { 'X-API-KEY': process.env.API_KEY }
-    }).then((res) => {
-      console.log(res.data)
     })
-      .catch((err) => {
-        console.log(err)
-      })
 
-    return { data }
+    return { prefs: data.data.result }
   }
 }
 </script>
