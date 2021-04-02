@@ -28,7 +28,22 @@
 </template>
 
 <script>
-export default {}
+export default {
+  async asyncData ({ $axios }) {
+    const PrefsURL = '/resasApi/api/v1/prefectures'
+
+    const data = await $axios.get(PrefsURL, {
+      headers: { 'X-API-KEY': process.env.API_KEY }
+    }).then((res) => {
+      console.log(res.data)
+    })
+      .catch((err) => {
+        console.log(err)
+      })
+
+    return { data }
+  }
+}
 </script>
 
 <style>
