@@ -6,8 +6,8 @@
       </h1>
       <div class="links">
         <div v-for="pref in prefs" :key="pref.prefCode" class="link">
-          <input v-bind:id="'pref-' + pref.prefCode" type="checkbox">
-          <label v-bind:for="'pref-' + pref.prefCode">
+          <label>
+            <input v-model="checkedPref" v-bind:value="pref.prefCode" type="checkbox" @change="prefChecked()">
             {{ pref.prefName }}
           </label>
         </div>
@@ -21,11 +21,49 @@ export default {
   async asyncData ({ $axios }) {
     const PrefsURL = '/resasApi/api/v1/prefectures'
 
-    const data = await $axios.get(PrefsURL, {
+    const prefData = await $axios.get(PrefsURL, {
       headers: { 'X-API-KEY': process.env.API_KEY }
     })
 
-    return { prefs: data.data.result }
+    return { prefs: prefData.data.result }
+  },
+
+  data () {
+    return {
+      checkedPref: [],
+      populaData: []
+    }
+  },
+
+  methods: {
+    prefChecked () {
+      const populaURL = '/resasApi/api/v1/population/composition/perYear'
+
+      this.populaData = []
+
+      // 人口データ取得
+      this.checkedPref.map((value) => {
+        const getPopulaData = this.$axios.$get(populaURL, {
+          params: {
+            prefCode: value,
+            cityCode: '-'
+          },
+          headers: { 'X-API-KEY': process.env.API_KEY }
+        }).then((res) => {
+          // 総人口のみ取得
+          res.result.data.map((datas) => {
+            if (datas.label === '総人口') {
+              console.log(datas.data)
+              this.populaData.push(datas.data)
+            }
+            return datas
+          })
+        })
+        return getPopulaData
+      })
+
+      console.log(this.populaData)
+    }
   }
 }
 </script>
