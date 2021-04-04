@@ -7,17 +7,23 @@
       <div class="links">
         <div v-for="pref in prefs" :key="pref.prefCode" class="link">
           <label>
-            <input v-model="checkedPref" v-bind:value="pref.prefCode" type="checkbox" @change="prefChecked()">
+            <input v-model="checkedPrefCode" v-bind:value="pref.prefCode" type="checkbox" @change="prefChecked()">
             {{ pref.prefName }}
           </label>
         </div>
       </div>
     </div>
+    <Barchart />
   </div>
 </template>
 
 <script>
+import Barchart from '@/components/charts.vue'
+
 export default {
+  components: {
+    Barchart
+  },
   async asyncData ({ $axios }) {
     const PrefsURL = '/resasApi/api/v1/prefectures'
 
@@ -30,8 +36,12 @@ export default {
 
   data () {
     return {
-      checkedPref: [],
-      populaData: []
+      checkedPrefCode: [],
+      checkedPrefName: [],
+      checkYear: [],
+      populaData: [],
+      xLabel: [],
+      yLabel: []
     }
   },
 
@@ -39,30 +49,44 @@ export default {
     prefChecked () {
       const populaURL = '/resasApi/api/v1/population/composition/perYear'
 
+      this.checkYear = []
+      this.checkedPrefName = []
       this.populaData = []
 
       // 人口データ取得
-      this.checkedPref.map((value) => {
+      this.checkedPrefCode.map((pCode, index) => {
+        const data = []
         const getPopulaData = this.$axios.$get(populaURL, {
           params: {
-            prefCode: value,
+            prefCode: pCode,
             cityCode: '-'
           },
           headers: { 'X-API-KEY': process.env.API_KEY }
         }).then((res) => {
-          // 総人口のみ取得
           res.result.data.map((datas) => {
             if (datas.label === '総人口') {
-              console.log(datas.data)
-              this.populaData.push(datas.data)
+              // 該当都道府県情報
+              this.prefs.map((pref) => {
+                if (pref.prefCode === pCode) {
+                  pName = pref.prefName
+                }
+                return pref
+              })
+              datas.data.map((populaNum) => {
+                // 年度の取得
+                if (index === 0) {
+                  this.checkYear.push(populaNum.year)
+                }
+                this.checkYear.push(populaNum.value)
+                return populaNum
+              })
             }
             return datas
           })
         })
         return getPopulaData
       })
-
-      console.log(this.populaData)
+      console.log(this.checkYear)
     }
   }
 }
