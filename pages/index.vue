@@ -13,19 +13,12 @@
         </div>
       </div>
     </div>
-    <Chart
-      v-if="load === true"
-      :pdata="chartdata"
-      :poption="options"
-    />
+    <Chart :chart-data="chartdata" :options="options" />
   </div>
 </template>
 
 <script>
 import Chart from '@/components/charts.vue'
-
-import 'chartjs-plugin-colorschemes/src/plugins/plugin.colorschemes'
-import { PiYG11 } from 'chartjs-plugin-colorschemes/src/colorschemes/colorschemes.brewer'
 
 export default {
   components: {
@@ -46,19 +39,9 @@ export default {
       checkedPrefCode: [],
       checkYear: [],
       populaData: [],
-      chartdata: {
-        labels: [123, 123, 123],
-        datasets: [
-          {
-            label: 'test',
-            data: [20, 30]
-          }
-        ]
-      },
+      chartdata: null,
       options: {
         responsive: true,
-        maintainAspectRatio: false,
-        easing: false,
         scales: {
           xAxes: [
             {
@@ -76,14 +59,8 @@ export default {
               }
             }
           ]
-        },
-        plugins: {
-          colorschemes: {
-            scheme: PiYG11
-          }
         }
-      },
-      load: true
+      }
     }
   },
 
@@ -93,8 +70,6 @@ export default {
 
       this.checkYear = []
       this.populaData = []
-
-      this.load = false
 
       // 年度一時保存
       const labelYear = []
@@ -134,9 +109,8 @@ export default {
           })
         })
       })
-      this.chartdata = { datacollection: { labels: labelYear, datasets: this.populaData } }
+      this.chartdata = { labels: labelYear, datasets: this.populaData }
       console.log(this.chartdata)
-      this.load = true
     }
   }
 }

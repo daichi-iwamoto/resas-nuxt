@@ -1,22 +1,27 @@
 <script>
-import { Line, mixins } from 'vue-chartjs'
-const { reactiveProp } = mixins
+import { Line } from 'vue-chartjs'
+
+// import 'chartjs-plugin-colorschemes/src/plugins/plugin.colorschemes'
+// import { PiYG11 } from 'chartjs-plugin-colorschemes/src/colorschemes/colorschemes.brewer'
+
+// import { delay } from 'chartjs-plugin-deferred/dist/chartjs-plugin-deferred'
+
+// const { reactiveProp } = mixins
 
 export default {
   extends: Line,
-  mixins: reactiveProp,
   props: {
-    pdata: {
+    chartData: {
       type: Object,
       default: null
     },
-    poption: {
+    options: {
       type: Object,
       default: null
     }
   },
   mounted () {
-    this.renderChart(this.pdata, this.poption)
+    this.renderChart(this.chartData, this.options)
   }
 }
 </script>
