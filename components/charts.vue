@@ -1,68 +1,22 @@
 <script>
-import { Line } from 'vue-chartjs'
-
-import 'chartjs-plugin-colorschemes/src/plugins/plugin.colorschemes'
-import { PiYG11 } from 'chartjs-plugin-colorschemes/src/colorschemes/colorschemes.brewer'
+import { Line, mixins } from 'vue-chartjs'
+const { reactiveProp } = mixins
 
 export default {
   extends: Line,
+  mixins: reactiveProp,
   props: {
-
-  },
-
-  data () {
-    return {
-      chartdata: {
-        labels: ['January', 'February', 'February', 'February'],
-        datasets: [
-          {
-            label: ['Data One'],
-            data: [40, 30],
-            fill: false
-          },
-          {
-            label: ['Data One'],
-            data: [43, 33],
-            fill: false
-          },
-          {
-            label: ['Data 2'],
-            data: [20, 10],
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                display: true,
-                labelString: '年度'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                display: true,
-                labelString: '人口数'
-              }
-            }
-          ]
-        },
-        plugins: {
-          colorschemes: {
-            scheme: PiYG11
-          }
-        }
-      }
+    pdata: {
+      type: Object,
+      default: null
+    },
+    poption: {
+      type: Object,
+      default: null
     }
   },
   mounted () {
-    this.renderChart(this.chartdata, this.options)
+    this.renderChart(this.pdata, this.poption)
   }
 }
 </script>

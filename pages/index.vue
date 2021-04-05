@@ -7,22 +7,29 @@
       <div class="links">
         <div v-for="pref in prefs" :key="pref.prefCode" class="link">
           <label>
-            <input v-model="checkedPrefCode" v-bind:value="pref.prefCode" type="checkbox" @change="prefChecked()">
+            <input v-model="checkedPrefCode" :value="pref.prefCode" type="checkbox" @change="prefChecked()">
             {{ pref.prefName }}
           </label>
         </div>
       </div>
     </div>
-    <Barchart />
+    <Chart
+      v-if="load === true"
+      :pdata="chartdata"
+      :poption="options"
+    />
   </div>
 </template>
 
 <script>
-import Barchart from '@/components/charts.vue'
+import Chart from '@/components/charts.vue'
+
+import 'chartjs-plugin-colorschemes/src/plugins/plugin.colorschemes'
+import { PiYG11 } from 'chartjs-plugin-colorschemes/src/colorschemes/colorschemes.brewer'
 
 export default {
   components: {
-    Barchart
+    Chart
   },
   async asyncData ({ $axios }) {
     const PrefsURL = '/resasApi/api/v1/prefectures'
@@ -37,11 +44,46 @@ export default {
   data () {
     return {
       checkedPrefCode: [],
-      checkedPrefName: [],
       checkYear: [],
       populaData: [],
-      xLabel: [],
-      yLabel: []
+      chartdata: {
+        labels: [123, 123, 123],
+        datasets: [
+          {
+            label: 'test',
+            data: [20, 30]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        easing: false,
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                display: true,
+                labelString: '年度'
+              }
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                display: true,
+                labelString: '人口数'
+              }
+            }
+          ]
+        },
+        plugins: {
+          colorschemes: {
+            scheme: PiYG11
+          }
+        }
+      },
+      load: true
     }
   },
 
@@ -50,43 +92,51 @@ export default {
       const populaURL = '/resasApi/api/v1/population/composition/perYear'
 
       this.checkYear = []
-      this.checkedPrefName = []
       this.populaData = []
 
+      this.load = false
+
+      // 年度一時保存
+      const labelYear = []
+
       // 人口データ取得
-      this.checkedPrefCode.map((pCode, index) => {
-        const data = []
-        const getPopulaData = this.$axios.$get(populaURL, {
+      this.checkedPrefCode.forEach((pCode, index) => {
+        this.$axios.$get(populaURL, {
           params: {
             prefCode: pCode,
             cityCode: '-'
           },
           headers: { 'X-API-KEY': process.env.API_KEY }
         }).then((res) => {
-          res.result.data.map((datas) => {
+          res.result.data.forEach((datas) => {
+            // 都道府県名一時保存
+            let datasetLabel
+            // 人口数一時保存
+            const datasetData = []
+            // 総人口情報のみ取得
             if (datas.label === '総人口') {
-              // 該当都道府県情報
-              this.prefs.map((pref) => {
+              // 都道府県名取得
+              this.prefs.forEach((pref) => {
                 if (pref.prefCode === pCode) {
-                  pName = pref.prefName
+                  datasetLabel = pref.prefName
+                  // データ取得
+                  datas.data.forEach((populaNum) => {
+                    datasetData.push(populaNum.value)
+                    // 年度の取得
+                    if (index === 0) {
+                      labelYear.push(populaNum.year)
+                    }
+                  })
                 }
-                return pref
               })
-              datas.data.map((populaNum) => {
-                // 年度の取得
-                if (index === 0) {
-                  this.checkYear.push(populaNum.year)
-                }
-                this.checkYear.push(populaNum.value)
-                return populaNum
-              })
+              this.populaData.push({ label: datasetLabel, data: datasetData, fill: false })
             }
-            return datas
           })
         })
-        return getPopulaData
       })
-      console.log(this.checkYear)
+      this.chartdata = { datacollection: { labels: labelYear, datasets: this.populaData } }
+      console.log(this.chartdata)
+      this.load = true
     }
   }
 }
