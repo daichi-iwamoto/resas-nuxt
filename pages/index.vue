@@ -39,7 +39,7 @@ export default {
 
   data () {
     return {
-      flag: true,
+      flag: false,
       checkedPrefCode: [],
       populaData: [],
       chartdata: null,
@@ -122,7 +122,7 @@ export default {
             }
           }
           // 同期確認
-          console.log(i + '回目！')
+          // console.log(i + '回目！')
           this.populaData.push({ label: datasetLabel, data: datasetData, fill: false })
         })
       }
