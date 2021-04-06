@@ -13,15 +13,12 @@
         </div>
       </div>
     </div>
-    <Chart v-if="flag" :chart-data="chartdata" :options="options" />
+    <Chart :chart-data="chartdata" :options="options" />
   </div>
 </template>
 
 <script>
 import Chart from '@/components/charts.vue'
-
-import 'chartjs-plugin-colorschemes/src/plugins/plugin.colorschemes'
-import { PiYG11 } from 'chartjs-plugin-colorschemes/src/colorschemes/colorschemes.brewer'
 
 export default {
   components: {
@@ -39,8 +36,8 @@ export default {
 
   data () {
     return {
-      flag: true,
       checkedPrefCode: [],
+      checkYear: [],
       populaData: [],
       chartdata: null,
       options: {
@@ -62,72 +59,58 @@ export default {
               }
             }
           ]
-        },
-        plugins: {
-          colorschemes: {
-            scheme: PiYG11
-          }
         }
       }
     }
   },
 
   methods: {
-    async prefChecked () {
-      this.flag = false
-
+    prefChecked () {
       const populaURL = '/resasApi/api/v1/population/composition/perYear'
 
-      // データの初期化
+      this.checkYear = []
       this.populaData = []
 
       // 年度一時保存
       const labelYear = []
 
-      // 都道府県数分取得
-      for (let i = 0; i < this.checkedPrefCode.length; i++) {
-        await this.$axios.get(populaURL, {
+      // 人口データ取得
+      this.checkedPrefCode.forEach((pCode, index) => {
+        this.$axios.$get(populaURL, {
           params: {
-            prefCode: this.checkedPrefCode[i],
+            prefCode: pCode,
             cityCode: '-'
           },
           headers: { 'X-API-KEY': process.env.API_KEY }
         }).then((res) => {
-          // 都道府県名一時保存
-          let datasetLabel
-
-          // 人口数一時保存
-          const datasetData = []
-
-          for (let j = 0; j < res.data.result.data.length; j++) {
-            // 年度取得
-            if (labelYear.length === 0) {
-              for (let l = 0; l < res.data.result.data[j].data.length; l++) {
-                labelYear.push(res.data.result.data[j].data[l].year)
-              }
+          res.result.data.forEach((datas) => {
+            // 都道府県名一時保存
+            let datasetLabel
+            // 人口数一時保存
+            const datasetData = []
+            // 総人口情報のみ取得
+            if (datas.label === '総人口') {
+              // 都道府県名取得
+              this.prefs.forEach((pref) => {
+                if (pref.prefCode === pCode) {
+                  datasetLabel = pref.prefName
+                  // データ取得
+                  datas.data.forEach((populaNum) => {
+                    datasetData.push(populaNum.value)
+                    // 年度の取得
+                    if (index === 0) {
+                      labelYear.push(populaNum.year)
+                    }
+                  })
+                }
+              })
+              this.populaData.push({ label: datasetLabel, data: datasetData, fill: false })
             }
-
-            // 都道府県名取得
-            for (let x = 0; x < this.prefs.length; x++) {
-              if (this.prefs[x].prefCode === this.checkedPrefCode[i]) {
-                datasetLabel = this.prefs[x].prefName
-              }
-            }
-
-            // 総人口データ取得
-            if (res.data.result.data[j].label === '総人口') {
-              for (let k = 0; k < res.data.result.data[j].data.length; k++) {
-                datasetData.push(res.data.result.data[j].data[k].value)
-              }
-            }
-          }
-          // 同期確認
-          console.log(i + '回目！')
-          this.populaData.push({ label: datasetLabel, data: datasetData, fill: false })
+          })
         })
-      }
+      })
       this.chartdata = { labels: labelYear, datasets: this.populaData }
-      this.flag = true
+      console.log(this.chartdata)
     }
   }
 }
