@@ -1,0 +1,6 @@
+[[redirects]]
+  from = "/resasApi/*"
+  to = "https://opendata.resas-portal.go.jp/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
