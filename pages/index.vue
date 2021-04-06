@@ -1,9 +1,14 @@
 <template>
   <div class="container">
     <header>
-      <h1 class="title">resas-nuxt</h1>
+      <h1 class="title">都道府県別 総人口確認表</h1>
     </header>
     <div class="links_container">
+      <h2>都道府県</h2>
+      <p class="caution">
+        総人口を知りたい都道府県名を洗濯してください<br />
+        <span>※ 複数選択可能です</span>
+      </p>
       <div v-for="pref in prefs" :key="pref.prefCode" class="link">
         <label>
           <input
